@@ -3,6 +3,13 @@
 import sys
 
 
+def usage():
+    message = 'Usage: ' + sys.argv[0] + ' <input file> <hdfs home>\n' + \
+              '     input file    : Name of the text file to be indexed\n' + \
+              '     hdfs home     : Path your HDFS home directory'
+    print(message)
+
+
 def file_number(in_filename):
     outfile = None
     infile = None
@@ -29,4 +36,14 @@ def file_number(in_filename):
 
 
 if __name__ == '__main__':
+    # print usage information/check arg count
+    argc = len(sys.argv)
+    if argc is not 3:
+        usage()
+        if argc is 1:
+            sys.exit(0)
+        else:
+            sys.exit(1)
+
+    # create a new file with line numbers
     datafile = file_number(sys.argv[1])
