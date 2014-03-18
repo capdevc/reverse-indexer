@@ -15,21 +15,12 @@
 
 
 import java.io.IOException;
-import java.util.StringTokenizer;
-
-import java.io.IOException;
-import java.util.StringTokenizer;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.TextInputFormat;
-import org.apache.hadoop.mapred.RecordReader;
-import org.apache.hadoop.mapred.InputSplit;
-import org.apache.hadoop.mapred.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
@@ -40,60 +31,20 @@ import org.apache.hadoop.util.GenericOptionsParser;
 
 public class ReverseIndexer {
 
-
-/*    public class LinesInputFormat extends TextInputFormat {
-         @Override
-         public RecordReader<LongWritable, Text> createRecordReader(InputSplit split, TaskAttemptContext context) {
-             return new LinesRecordReader();
-         }
-
-         @Override
-         protected boolean isSplitable(JobContext context, Path filename) {
-             // we have to make the file unsplittable since
-             // we need to be able to count line numbers
-             return false;
-         }
-    }*/
-/*
-    public class LinesRecordReader extends RecordReader<LongWritable, Text> {
-         private LongWritable key;
-         private Text value = new Text();
-         private long start = 0;
-         private long end = 0;
-         private long pos = 0;
-         private int maxLineLength;
-
-         @Override
-         public void close() throws IOException {
-             if (in != null) {
-                 in.close();
-             }
-         }
-
-         @Override
-         public LongWritable getCurrentKey() throws IOException, InterruptedException {
-             return key;
-         }
-
-         @Override
-         public Text getCurrentValue() throws IOException, InterruptedException {
-              return value;
-         }
-
-
-    }*/
-
     public static class IndexerMapper
             extends Mapper<LongWritable, Text, Text, Text>{
 
         private Text word = new Text();
+        private Text lineNum = new Text();
 
         public void map(LongWritable key, Text value, Context context
         ) throws IOException, InterruptedException {
-            StringTokenizer itr = new StringTokenizer(value.toString());
-            while (itr.hasMoreTokens()) {
-                word.set(itr.nextToken().toUpperCase().replaceAll("[^A-Z]", ""));
-                context.write(word, new Text(key.toString()));
+            String[] lines = value.toString().split("\\s+");
+            // use the first token as the value, then all the others as keys
+            lineNum.set(lines[0]);
+            for (int i = 1; i < lines.length; i++) {
+                word.set(lines[i].toUpperCase().replaceAll("\\W", ""));
+                context.write(word, lineNum);
             }
         }
     }
@@ -113,7 +64,6 @@ public class ReverseIndexer {
             context.write(key, out);
         }
     }
-
 
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
