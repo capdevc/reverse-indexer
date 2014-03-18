@@ -1,4 +1,4 @@
 Hadoop Reverse Indexer
 
-for Hadoop 2.2.0
+for Hadoop 1.2.1
 
