@@ -39,11 +39,11 @@ public class ReverseIndexer {
 
         public void map(LongWritable key, Text value, Context context
         ) throws IOException, InterruptedException {
-            String[] lines = value.toString().split("\\s+");
+            String[] lines = value.toString().split("(-|\\s)+");
             // use the first token as the value, then all the others as keys
             lineNum.set(lines[0]);
             for (int i = 1; i < lines.length; i++) {
-                word.set(lines[i].toUpperCase().replaceAll("\\W", ""));
+                word.set(lines[i].replaceAll("[^A-Za-z]", "").toLowerCase());
                 context.write(word, lineNum);
             }
         }
