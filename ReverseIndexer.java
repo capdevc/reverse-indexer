@@ -34,7 +34,6 @@ import org.apache.hadoop.util.GenericOptionsParser;
 
 public class ReverseIndexer {
 
-
     public static class IndexerMapper
             extends Mapper<LongWritable, Text, Text, LineRecWritable>{
 
@@ -70,7 +69,7 @@ public class ReverseIndexer {
             int wordCount = 0;
 
             Configuration conf = context.getConfiguration();
-            int threshold = conf.getInt("threshold", 50);
+            int threshold = conf.getInt("threshold", Integer.MAX_VALUE);
 
             for (LineRecWritable lineRec : values) {
                 String filename = lineRec.getFilename();
@@ -106,7 +105,7 @@ public class ReverseIndexer {
             System.err.println("Usage: ReverseIndexer <output> <input file(s)>");
             System.exit(2);
         }
-        conf.setInt("threshold", 5);
+        conf.setInt("threshold", Integer.MAX_VALUE);
         Job job = new Job(conf, "reverse indexer");
         job.setJarByClass(ReverseIndexer.class);
         job.setMapperClass(IndexerMapper.class);
