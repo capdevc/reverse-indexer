@@ -2,6 +2,7 @@
 import sys
 import argparse
 import subprocess as sp
+from ntpath import basename
 
 
 # Utility function wrapping subprocess.Popen
@@ -28,7 +29,7 @@ def wordcount(infiles, outfile, jar, hadoop_path):
     # build a string of inputfiles with / prepended for hdfs
     hdfs_infstr = ''
     for infile in infiles:
-        hdfs_infstr += ' /{}'.format(infile)
+        hdfs_infstr += ' /{}'.format(basename(infile))
 
     print("Copying input files to HDFS...")
     subp_cmd('{} fs -put {} /'.format(hadoop_cmd, infstr),

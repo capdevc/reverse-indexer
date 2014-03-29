@@ -29,7 +29,7 @@ def reverseindex(infiles, outfile, jar, threshold, hadoop_path):
     # build a string of inputfiles with / prepended for hdfs
     hdfs_infstr = ''
     for infile in infiles:
-        hdfs_infstr += ' /{}'.format(infile)
+        hdfs_infstr += ' /{}'.format(basename(infile))
 
     print("Copying input files to HDFS...")
     subp_cmd('{} fs -put {} /'.format(hadoop_cmd, infstr),

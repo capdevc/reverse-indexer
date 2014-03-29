@@ -27,19 +27,20 @@ if __name__ == '__main__':
                         help='Drop the STOP most common words (default: 0)')
     args = parser.parse_args()
 
-    wc_filename = 'wc' + str(uuid.uuid4())
+    tdir = mkdtemp()
 
+    wc_filename = '{}/{}'.format(tdir, str(uuid.uuid4()))
     wordcount(args.infile, wc_filename, args.wc, args.hadoop)
 
     thresh = 0
     with open(wc_filename, 'r') as wc_file:
-        _, thresh = threshold(args.stop, wc_file)
-    os.remove(wc_file)
+        thresh = threshold(args.stop, wc_file)
+
+    os.remove(wc_filename)
 
     ln_infile = []
-    tdir = mkdtemp()
     for filename in args.infile:
-        ofilename = tdir + basename(filename)
+        ofilename = '{}/{}'.format(tdir, basename(filename))
         ln_infile.append(ofilename)
         with open(filename, 'r') as i, open(ofilename, 'w') as o:
             number(i, o)
