@@ -115,7 +115,6 @@ public class ReverseIndexer {
             System.err.println("Usage: ReverseIndexer <output> <input file(s)>");
             System.exit(2);
         }
-        conf.setInt("threshold", Integer.MAX_VALUE);
         Job job = new Job(conf, "reverse indexer");
         job.setJarByClass(ReverseIndexer.class);
         job.setMapperClass(IndexerMapper.class);
