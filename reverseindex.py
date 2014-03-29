@@ -38,7 +38,7 @@ def reverseindex(infiles, outfile, jar, threshold, hadoop_path):
     print('Running the hadoop job...')
     cmd = '{} jar {} ReverseIndexer'.format(hadoop_cmd, jar)
     if threshold != 0:
-        cmd += ' -D threshold={}'.format(threshold)
+        cmd += ' -Dthreshold={}'.format(threshold)
     cmd += ' /output {}'.format(hdfs_infstr)
     subp_cmd(cmd, 'An error occurred running the hadoop job:\n')
 
