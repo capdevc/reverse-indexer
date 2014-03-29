@@ -3,7 +3,7 @@ import argparse
 
 
 # function to number lines in a file
-def preprocess(infile, outfile):
+def number(infile, outfile):
     line_no = 1
     for line in infile:
         outfile.write(str(line_no) + ' ' + line)
@@ -18,4 +18,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     with open(args.infile) as infile, open(args.outfile, 'w') as outfile:
-        preprocess(infile, outfile)
+        number(infile, outfile)

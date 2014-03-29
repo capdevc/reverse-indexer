@@ -13,7 +13,7 @@ def build_counts(wcfile):
     return counts
 
 
-def get_threshold(num_words, wcfile):
+def threshold(num_words, wcfile):
     counts = build_counts(wcfile)
     return counts[num_words - 1]
 
@@ -27,7 +27,7 @@ if __name__ == '__main__':
 
     with open(args.infile) as infile:
         stopwords = {}
-        thresh = get_threshold(args.num_words, infile)
+        thresh = threshold(args.num_words, infile)
         infile.seek(0)
         for line in infile:
             word, count = line.strip('\n').split('\t')

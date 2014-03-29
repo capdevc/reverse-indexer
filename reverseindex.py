@@ -2,6 +2,7 @@
 import sys
 import argparse
 import subprocess as sp
+from ntpath import basename
 
 
 # Utility function wrapping subprocess.Popen
@@ -16,7 +17,7 @@ def subp_cmd(cmd, err_msg):
 
 
 # actually run hadoop
-def runwc(infiles, outfile, jar, hadoop_path):
+def reverseindex(infiles, outfile, jar, threshold, hadoop_path):
     # add the hadoop path if needed
     hadoop_cmd = 'hadoop '
     if hadoop_path:
@@ -34,9 +35,12 @@ def runwc(infiles, outfile, jar, hadoop_path):
     subp_cmd('{} fs -put {} /'.format(hadoop_cmd, infstr),
              'An error occurred copying the input files to hdfs.\n')
 
-    print("Running the Word Count...")
-    subp_cmd('{} jar {} WordCount /output {}'.format(hadoop_cmd, jar, hdfs_infstr),
-             'An error occurred running the hadoop job:\n')
+    print("Running the Reverse Indexer...")
+    cmd = '{} jar {} ReverseIndexer'.format(hadoop_cmd, jar)
+    if threshold != 0:
+        cmd += ' -D threshold={}'.format(threshold)
+    cmd += ' /output {}'.format(hdfs_infstr)
+    subp_cmd(cmd, 'An error occurred running the hadoop job:\n')
 
     print("Copying the output file from HDFS...")
     subp_cmd('{} fs -get /output/part-r-00000 {}'.format(hadoop_cmd, outfile),
@@ -55,10 +59,12 @@ if __name__ == '__main__':
     parser.add_argument('outfile', help='Name of the output file')
     parser.add_argument('infile', nargs='+',
                         help='Names of the text files to be numbered')
-    parser.add_argument('-j', '--jar', default='wc.jar',
+    parser.add_argument('-j', '--jar', default='ri.jar',
                         help='Name of the jar file (default: %(default)s)')
     parser.add_argument('-p', '--hadoop', default=None, metavar='PATH',
                         help='Path to the hadoop binary (default: "")')
+    parser.add_argument('-t', '--threshold', type=int, default=0,
+                        help='Minimum count for stop words')
     args = parser.parse_args()
 
-    runwc(args.infile, args.outfile, args.jar, args.hadoop)
+    reverseindex(args.infile, args.outfile, args.jar, args.threshold, args.hadoop)
