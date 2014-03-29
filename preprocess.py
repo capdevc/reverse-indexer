@@ -2,6 +2,7 @@
 import argparse
 
 
+# function to number lines in a file
 def preprocess(infile, outfile):
     line_no = 1
     for line in infile:
