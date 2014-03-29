@@ -11,11 +11,12 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 
 
+// class to hold information about a word occurence
 public class LineRecWritable implements Writable {
 
-    private Text filename;
-    private IntWritable lineNum;
-    private IntWritable position;
+    private Text filename;          // filename found in
+    private IntWritable lineNum;    // line no found in
+    private IntWritable position;   // position found at
 
     public LineRecWritable(){
         setFilename("");
