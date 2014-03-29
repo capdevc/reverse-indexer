@@ -3,6 +3,7 @@ import argparse
 import operator
 
 
+# build a list of word counts, then sort it
 def build_counts(wcfile):
     counts = []
     wcfile.seek(0)
@@ -13,6 +14,7 @@ def build_counts(wcfile):
     return counts
 
 
+# calculate a threshold of counts for the nth word
 def threshold(num_words, wcfile):
     counts = build_counts(wcfile)
     return counts[num_words - 1]
@@ -25,6 +27,7 @@ if __name__ == '__main__':
     parser.add_argument('num_words', type=int, help='number of words to drop')
     args = parser.parse_args()
 
+    # build stop word list and print it with threshold
     with open(args.infile) as infile:
         stopwords = {}
         thresh = threshold(args.num_words, infile)

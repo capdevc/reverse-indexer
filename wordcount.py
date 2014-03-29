@@ -31,19 +31,19 @@ def wordcount(infiles, outfile, jar, hadoop_path):
     for infile in infiles:
         hdfs_infstr += ' /{}'.format(basename(infile))
 
-    print("Copying input files to HDFS...")
+    print('Copying input files to HDFS...')
     subp_cmd('{} fs -put {} /'.format(hadoop_cmd, infstr),
              'An error occurred copying the input files to hdfs.\n')
 
-    print("Running the Word Count...")
+    print('Running the hadoop job...')
     subp_cmd('{} jar {} WordCount /output {}'.format(hadoop_cmd, jar, hdfs_infstr),
              'An error occurred running the hadoop job:\n')
 
-    print("Copying the output file from HDFS...")
+    print('Copying the output file from HDFS...')
     subp_cmd('{} fs -get /output/part-r-00000 {}'.format(hadoop_cmd, outfile),
              'An error ocurred retrieving output file from hdfs')
 
-    print("Removing input and output files from HDFS...")
+    print('Removing input and output files from HDFS...')
     subp_cmd('{} fs -rm {}'.format(hadoop_cmd, hdfs_infstr),
              'An error occurred rming temp file from the hdfs filesystem:\n')
     subp_cmd('{} fs -rmr /output'.format(hadoop_cmd),

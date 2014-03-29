@@ -29,15 +29,20 @@ if __name__ == '__main__':
 
     tdir = mkdtemp()
 
+    print('Getting a wordcount to setup a stopword list...')
     wc_filename = '{}/{}'.format(tdir, str(uuid.uuid4()))
     wordcount(args.infile, wc_filename, args.wc, args.hadoop)
 
+    print('Generating a count threshold to drop top {} words...'.format(args.stop))
     thresh = 0
     with open(wc_filename, 'r') as wc_file:
         thresh = threshold(args.stop, wc_file)
 
+    # remove the wordcount file since we no longer need it
     os.remove(wc_filename)
 
+    # copy the files + line numbers to a temporary directory
+    print('Adding line numbers to input files...')
     ln_infile = []
     for filename in args.infile:
         ofilename = '{}/{}'.format(tdir, basename(filename))
@@ -45,6 +50,8 @@ if __name__ == '__main__':
         with open(filename, 'r') as i, open(ofilename, 'w') as o:
             number(i, o)
 
+    print('Running the reverse indexer...')
     reverseindex(ln_infile, args.outfile, args.ri, thresh, args.hadoop)
 
+    # remove the temporary directory
     shutil.rmtree(tdir)
