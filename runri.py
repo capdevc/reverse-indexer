@@ -4,6 +4,7 @@ import argparse
 import subprocess as sp
 
 
+# Utility function wrapping subprocess.Popen
 def subp_cmd(cmd, err_msg):
     p = sp.Popen(cmd, shell=True, stderr=sp.PIPE)
     p.wait()
@@ -14,37 +15,39 @@ def subp_cmd(cmd, err_msg):
         sys.exit(1)
 
 
+# actually run hadoop
 def runri(infiles, outfile, jar, threshold, hadoop_path):
     # add the hadoop path if needed
     hadoop_cmd = 'hadoop '
     if hadoop_path:
         hadoop_cmd = '{}/hadoop'.format(hadoop_path)
 
+    # buid a string of input files
     infstr = ' '.join(infiles)
-    # build a string of inputfiles + hdfs path
+
+    # build a string of inputfiles with / prepended for hdfs
     hdfs_infstr = ''
     for infile in infiles:
-        infstr += ' /{}'.format(infile)
+        hdfs_infstr += ' /{}'.format(infile)
 
+    print("Copying input files to HDFS...")
     subp_cmd('{} fs -put {} /'.format(hadoop_cmd, infstr),
              'An error occurred copying the input files to hdfs.\n')
 
-    # run the jar file
+    print("Running the Reverse Indexer...")
     cmd = '{} jar {} ReverseIndexer'.format(hadoop_cmd, jar)
     if threshold != 0:
         cmd += ' -D threshold={}'.format(threshold)
     cmd += ' /output {}'.format(hdfs_infstr)
     subp_cmd(cmd, 'An error occurred running the hadoop job:\n')
 
-    # copy the output files
+    print("Copying the output file from HDFS...")
     subp_cmd('{} fs -get /output/part-r-00000 {}'.format(hadoop_cmd, outfile),
              'An error ocurred retrieving output file from hdfs')
 
-    # erase the input file from the hdfs system
+    print("Removing input and output files from HDFS...")
     subp_cmd('{} fs -rm {}'.format(hadoop_cmd, hdfs_infstr),
              'An error occurred rming temp file from the hdfs filesystem:\n')
-
-    # erase the output files from the hdfs system
     subp_cmd('{} fs -rmr /output'.format(hadoop_cmd),
              'An error occurred rming output file from the hdfs filesystem:\n')
 
@@ -60,7 +63,7 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--hadoop', default=None, metavar='PATH',
                         help='Path to the hadoop binary (default: "")')
     parser.add_argument('-t', '--threshold', type=int, default=0,
-                        help='Max appearances before a word is considered a stop word')
+                        help='Minimum count for stop words')
     args = parser.parse_args()
 
     runri(args.infile, args.outfile, args.jar, args.threshold, args.hadoop)

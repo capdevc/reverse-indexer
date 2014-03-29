@@ -46,12 +46,17 @@ public class ReverseIndexer {
             FileSplit fileSplit = (FileSplit)context.getInputSplit();
             String filename = fileSplit.getPath().getName();
             String[] lines = value.toString().split("(-|\\s)+");
-            // use the first token as the value, then all the others as keys
+            // use the first token as the line number
             lineNum = Integer.parseInt(lines[0]);
             for (int i = 1; i < lines.length; i++) {
-                word.set(lines[i].replaceAll("[^A-Za-z]", "").toLowerCase());
-                context.write(word, new LineRecWritable(filename, lineNum, position));
-                position++;
+                String w = lines[i].replaceAll("[^A-Za-z]", "").toLowerCase();
+                // get rid of nulls strings, there's probably a better way
+                if (w.length() != 0) {
+                    word.set(w);
+                    context.write(word, new LineRecWritable(filename, lineNum, position));
+                    // increment word position in line
+                    position++;
+                }
             }
         }
     }
@@ -72,8 +77,10 @@ public class ReverseIndexer {
             int threshold = conf.getInt("threshold", Integer.MAX_VALUE);
 
             for (LineRecWritable lineRec : values) {
+                // unpack the filename, line number and line position
                 String filename = lineRec.getFilename();
                 String position = lineRec.getLineNum() + ":" + lineRec.getPos();
+                // add the data to the hashmap for that file
                 if (fileLines.containsKey(filename)) {
                     fileLines.get(filename).add(position);
                 } else {
@@ -84,7 +91,10 @@ public class ReverseIndexer {
                 wordCount++;
             }
 
+            // only output this if we've seen the word fewer
+            // than "threshold" number of times
             if (wordCount < threshold) {
+                // build an output string
                 for (String filename : fileLines.keySet()) {
                     lines += filename;
                     for (String position : fileLines.get(filename)) {
