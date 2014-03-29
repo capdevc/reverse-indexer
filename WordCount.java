@@ -12,9 +12,6 @@
  *  limitations under the License.
  */
 
-
-package org.apache.hadoop.examples;
-
 import java.io.IOException;
 import java.util.StringTokenizer;
 
