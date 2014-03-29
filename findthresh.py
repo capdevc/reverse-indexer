@@ -36,4 +36,4 @@ if __name__ == '__main__':
         for item in sorted(stopwords.iteritems(), key=operator.itemgetter(1),
                            reverse=True):
             print(item)
-        print(thresh)
+        print('Count threshold: {}'.format(thresh))
