@@ -9,8 +9,8 @@ class QueryHandler:
                 self.dic[entry[0]] = entry[1:]
 
     def getEntries(self,word):
+        entries = {}
         try:
-            entries = {}
             for entry in self.dic[word]:
                 info = entry.split(',')
                 locs = {}
@@ -21,9 +21,9 @@ class QueryHandler:
                     else:
                         locs[line] = [word]
                 entries[info[0]] = locs
-            return entries        
         except: 
-            return None 
+            pass
+        return entries        
     
     def printEntries(self,entries):
         for entry in entries:
@@ -44,11 +44,18 @@ class QueryHandler:
             except:
                 break
 
-            entries = self.getEntries(query)
-            if entries is None:
-                print "  {} not found".format(query)
+            if len(query.split()) == 1:
+                entries = self.getEntries(query)
+                if entries:
+                    self.printEntries(entries)
+                else:
+                    print "  {} not found".format(query)
             else:
-                self.printEntries(entries)
+                phraseList = self.parsePhrase(query)
+                if phraseList:
+                    self.printPhraseList(phraseList)
+                else:
+                    print "  {} not found".format(query)
 
     def parsePhrase(self, phrase):
         '''returns a list of tuples of the form (filename, linenum, startword)
@@ -56,7 +63,6 @@ class QueryHandler:
         line linenum in file filename'''
         words = phrase.split()
         entries = [self.getEntries(word) for word in words]
-        [self.printEntries(e) for e in entries]
         filelist = entries[0].keys()
         phraseStarts = []
         for i in range(1,len(entries)):
@@ -77,6 +83,12 @@ class QueryHandler:
                         phraseStarts.append((fn, l, start))
         return phraseStarts
 
+    def printPhraseList(self, phraseList):
+        for p in phraseList:
+            print "  Starting in file {} on line {} at word {}"\
+                .format(p[0],p[1],p[2])
+            
+
 if __name__ == '__main__':
     try:
         filename = argv[1]
@@ -84,6 +96,5 @@ if __name__ == '__main__':
         print "use: python query.py indexfile.txt"
         exit()
     qh = QueryHandler(filename)
-#    qh.readQueries()
-    print qh.parsePhrase('casing cask')
+    qh.readQueries()
 
