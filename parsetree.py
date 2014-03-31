@@ -95,7 +95,7 @@ def buildParseTree(query):
         elif t == '(':
             opstack.append(t)
         elif t == ')':
-            while opstack[-1] != '(':
+            while opstack and opstack[-1] != '(':
                 popop(opstack, argstack)
             try:
                 opstack.pop()

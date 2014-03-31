@@ -1,4 +1,6 @@
 from sys import argv
+from parsetree import *
+import re
 
 class QueryHandler:
     def __init__(self, filename):
@@ -26,51 +28,94 @@ class QueryHandler:
         return entries        
     
     def printEntries(self,entries):
+        if not entries:
+            print "  No entries"
         for entry in entries:
             print "  File: {}".format(entry)
             for loc in entries[entry]:
-                if len(entries[entry][loc]) == 1:
-                    print "    Line: {}, Word {}"\
-                        .format(loc, entries[entry][loc][0])
-                else:
-                    print "    Line: {}, Words {}"\
-                        .format(loc, ','.join(entries[entry][loc]))
+                print "    On Line: {}"\
+                    .format(loc, entries[entry][loc])
     
     def readQueries(self):
         while True:
             try:
                 print "Enter your query:",
                 query = raw_input().rstrip().lower()
-            except:
+                query = re.sub(r'\band\b', 'AND', query)
+                query = re.sub(r'\bnot\b', 'NOT', query)
+                query = re.sub(r'\bor\b',  'OR',  query)
+                pt = buildParseTree(query)
+                print "searching for {}".format(str(pt))
+                self.printEntries(self.parseTree(pt))
+            except (MismatchedParensError, InvalidQueryError) as e:
+                print "  " + str(e)
+                continue
+            except EOFError:
                 break
 
-            if len(query.split()) == 1:
-                entries = self.getEntries(query)
-                if entries:
-                    self.printEntries(entries)
-                else:
-                    print "  {} not found".format(query)
-            else:
-                phraseList = self.parsePhrase(query)
-                if phraseList:
-                    self.printPhraseList(phraseList)
-                else:
-                    print "  {} not found".format(query)
+    def parseTree(self,node):
+        if isinstance(node,str):
+            return self.parsePhrase(node)
+        else:   
+            entries = [self.parseTree(c) for c in node.children]
+            locs = {}
+            if node.isAnd():
+                filelist = self.getCommonFiles(entries)
+                for fn in filelist:
+                    lines = self.getCommonLines(entries, fn)
+                    for l in lines:
+                        if fn not in locs:
+                            locs[fn] = {}
+                        locs[fn][l] = [-1]
+            elif node.isOr():
+                for e in entries:
+                    for fn in e.keys():
+                        for l in e[fn]:
+                            if fn not in locs:
+                                locs[fn] = {}
+                            locs[fn][l] = [-1]
+            elif node.isNot():
+                entries = entries[0]
+                universe = [self.getEntries(w) for w in self.dic.keys()]
+                for e in universe:
+                    for fn in e.keys():
+                        if fn in entries.keys():
+                            for l in e[fn]:
+                                if l not in entries[fn]:
+                                    if fn not in locs:
+                                        locs[fn] = {}
+                                    locs[fn][l] = [-1]
+                        else:
+                            for l in e[fn]:
+                                if fn not in locs:
+                                    locs[fn] = {}
+                                locs[fn][l] = [-1]
+            return locs
+            
+                
+    def getCommonFiles(self, entryList):
+        filelist = entryList[0].keys()
+        for i in range(1,len(entryList)):
+            filelist = [fn for fn in filelist if fn in entryList[i].keys()]
+        return filelist
+
+    def getCommonLines(self, entryList, fn):
+        lines = []
+        lines = entryList[0][fn].keys()
+        for i in range(1,len(entryList)):
+            lines = [l for l in lines if l in entryList[i][fn].keys()]
+        return lines
 
     def parsePhrase(self, phrase):
         '''returns a list of tuples of the form (filename, linenum, startword)
         where the entire phrase appears, in order, starting at startword in 
         line linenum in file filename'''
+        phraseStarts = {}
         words = phrase.split()
         entries = [self.getEntries(word) for word in words]
-        filelist = entries[0].keys()
-        phraseStarts = []
-        for i in range(1,len(entries)):
-            filelist = [fn for fn in filelist if fn in entries[i].keys()]
+        filelist = self.getCommonFiles(entries)
         for fn in filelist:
-            lines = entries[0][fn].keys()
-            for i in range(1,len(words)):
-                lines = [l for l in lines if l in entries[i][fn].keys()]
+            lines = self.getCommonLines(entries, fn)
             for l in lines:
                 for num in entries[0][fn][l]:
                     start = int(num)
@@ -80,14 +125,12 @@ class QueryHandler:
                             phraseFound = False
                             break
                     if phraseFound:
-                        phraseStarts.append((fn, l, start))
+                        if fn not in phraseStarts:
+                            phraseStarts[fn] = {} 
+                        if l not in phraseStarts[fn]:
+                            phraseStarts[fn][l] = []
+                        phraseStarts[fn][l].append(str(start))
         return phraseStarts
-
-    def printPhraseList(self, phraseList):
-        for p in phraseList:
-            print "  Starting in file {} on line {} at word {}"\
-                .format(p[0],p[1],p[2])
-            
 
 if __name__ == '__main__':
     try:
