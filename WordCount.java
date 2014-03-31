@@ -74,7 +74,7 @@ public class WordCount {
     job.setReducerClass(IntSumReducer.class);
     job.setOutputKeyClass(Text.class);
     job.setOutputValueClass(IntWritable.class);
-    for (int i = 2; i < otherArgs.length; i++) {
+    for (int i = 1; i < otherArgs.length; i++) {
         FileInputFormat.addInputPath(job, new Path(otherArgs[i]));
     }
     FileOutputFormat.setOutputPath(job, new Path(otherArgs[0]));
