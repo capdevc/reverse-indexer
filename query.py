@@ -1,6 +1,8 @@
+#!/usr/bin/env python
 from sys import argv
 from parsetree import *
 import re
+import argparse
 
 class QueryHandler:
     def __init__(self, filename):
@@ -10,20 +12,20 @@ class QueryHandler:
                 entry = line.rstrip().split('\t')
                 self.dic[entry[0]] = entry[1:]
 
-    def getEntries(self,word):
+    def getEntries(self, word):
         entries = {}
         try:
             for entry in self.dic[word]:
                 info = entry.split(',')
                 locs = {}
                 for loc in info[1:]:
-                    line,word = loc.split(':')
+                    line, word = loc.split(':')
                     if line in locs:
                         locs[line].append(word)
                     else:
                         locs[line] = [word]
                 entries[info[0]] = locs
-        except: 
+        except:
             pass
         return entries        
     
@@ -108,7 +110,7 @@ class QueryHandler:
 
     def parsePhrase(self, phrase):
         '''returns a list of tuples of the form (filename, linenum, startword)
-        where the entire phrase appears, in order, starting at startword in 
+        where the entire phrase appears, in order, starting at startword in
         line linenum in file filename'''
         phraseStarts = {}
         words = phrase.split()
@@ -120,7 +122,7 @@ class QueryHandler:
                 for num in entries[0][fn][l]:
                     start = int(num)
                     phraseFound = True
-                    for i in range(1,len(words)):
+                    for i in range(1, len(words)):
                         if str(start + i) not in entries[i][fn][l]:
                             phraseFound = False
                             break
@@ -133,11 +135,11 @@ class QueryHandler:
         return phraseStarts
 
 if __name__ == '__main__':
-    try:
-        filename = argv[1]
-    except:
-        print "use: python query.py indexfile.txt"
-        exit()
-    qh = QueryHandler(filename)
-    qh.readQueries()
+    # Parse arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('index_file', help='Index file to be queried')
+    args = parser.parse_args()
 
+    # run query
+    qh = QueryHandler(args.index_file)
+    qh.readQueries()
